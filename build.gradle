@@ -1,4 +1,4 @@
-group 'com.chairbender.bouncemusic'
+group 'com.chairbender'
 version '1.0-SNAPSHOT'
 
 buildscript {
@@ -47,6 +47,9 @@ dependencies {
     compile "org.openrndr:openrndr-svg:$openrndrVersion"
     compile "org.openrndr:openrndr-animatable:$openrndrVersion"
     compile "org.openrndr:openrndr-extensions:$openrndrVersion"
+    // https://mvnrepository.com/artifact/org.jbox2d/jbox2d-library
+    compile group: 'org.jbox2d', name: 'jbox2d-library', version: '2.2.1.1'
+
 }
 
 compileKotlin {
