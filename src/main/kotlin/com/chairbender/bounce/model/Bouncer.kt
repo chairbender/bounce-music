@@ -1,14 +1,12 @@
 package com.chairbender.bounce.model
 
-import com.chairbender.bounce.Drawable
-import com.chairbender.bounce.Physical
-import com.chairbender.bounce.box2d
-import com.chairbender.bounce.pixels
+import com.chairbender.bounce.*
 import org.jbox2d.collision.shapes.CircleShape
 import org.jbox2d.dynamics.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.Drawer
 import org.openrndr.math.Vector2
+import org.openrndr.shape.Circle
 
 const val BASE_VELOCITY = 5.0
 
@@ -16,9 +14,7 @@ const val BASE_VELOCITY = 5.0
  * The thing that bounces around, a circle. Initially it is drawn and is not part of the physics simulation.
  * Once it is finished, it is added to the physics simulation and launched.
  */
-class Bouncer(center: Vector2, radius: Float, world: World) : Physical(world), Drawable {
-
-
+class Bouncer(center: Vector2, radius: Float, world: World) : Physical(world), Circular {
     val bd = BodyDef()
     val cs = CircleShape()
     val fd = FixtureDef()
@@ -36,7 +32,7 @@ class Bouncer(center: Vector2, radius: Float, world: World) : Physical(world), D
         fd.friction = .0f
     }
 
-    override fun draw(drawer: Drawer) {
+    /*override fun draw(drawer: Drawer) {
         drawer.fill = ColorRGBa.RED
         drawer.stroke = ColorRGBa.BLACK
         drawer.strokeWeight = 1.0
@@ -46,6 +42,15 @@ class Bouncer(center: Vector2, radius: Float, world: World) : Physical(world), D
         } else {
             drawer.circle(bd.position.pixels(), pixels(cs.radius))
         }
+    }*/
+
+    override fun circle(): Circle {
+        if (body != null) {
+            return Circle(body!!.position.pixels(), pixels(cs.radius))
+        } else {
+            return Circle(bd.position.pixels(), pixels(cs.radius))
+        }
+
     }
 
     /**

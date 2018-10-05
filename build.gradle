@@ -24,6 +24,9 @@ repositories {
     maven {
         url="https://dl.bintray.com/openrndr/openrndr/"
     }
+    maven {
+        url="http://clojars.org/repo/"
+    }
 }
 
 switch (org.gradle.internal.os.OperatingSystem.current()) {
@@ -38,6 +41,7 @@ switch (org.gradle.internal.os.OperatingSystem.current()) {
         break
 }
 
+
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     testCompile group: 'junit', name: 'junit', version: '4.12'
@@ -49,6 +53,9 @@ dependencies {
     compile "org.openrndr:openrndr-extensions:$openrndrVersion"
     // https://mvnrepository.com/artifact/org.jbox2d/jbox2d-library
     compile group: 'org.jbox2d', name: 'jbox2d-library', version: '2.2.1.1'
+    // https://mvnrepository.com/artifact/com.jsyn/jsyn
+    compile group: 'com.jsyn', name: 'jsyn', version: '20170815'
+
 
 }
 
