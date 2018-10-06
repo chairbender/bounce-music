@@ -1,6 +1,10 @@
 package com.chairbender.bounce.model
 
 import com.chairbender.bounce.*
+import com.jsyn.Synthesizer
+import com.jsyn.ports.UnitInputPort
+import com.jsyn.unitgen.*
+import com.softsynth.shared.time.TimeStamp
 import org.jbox2d.collision.shapes.CircleShape
 import org.jbox2d.dynamics.*
 import org.openrndr.color.ColorRGBa
@@ -14,11 +18,16 @@ const val BASE_VELOCITY = 5.0
  * The thing that bounces around, a circle. Initially it is drawn and is not part of the physics simulation.
  * Once it is finished, it is added to the physics simulation and launched.
  */
-class Bouncer(center: Vector2, radius: Float, world: World) : Physical(world), Circular {
-    val bd = BodyDef()
-    val cs = CircleShape()
-    val fd = FixtureDef()
-    var body: Body? = null
+class Bouncer(center: Vector2, radius: Float, private val audioOut: UnitInputPort,
+              private val synth: Synthesizer, world: World) : Physical(world), Circular {
+    private val bd = BodyDef()
+    private val cs = CircleShape()
+    private val fd = FixtureDef()
+    private var body: Body? = null
+
+    private val pan = Pan()
+    private val adsr = EnvelopeAttackDecay()
+    private val pulse = PulseOscillator()
 
     init {
         bd.position.set(center.box2d())
@@ -30,19 +39,23 @@ class Bouncer(center: Vector2, radius: Float, world: World) : Physical(world), C
         fd.density = .5f
         fd.restitution = 1.0f
         fd.friction = .0f
+        fd.userData = this
+
+        //hook up the ugen
+        /*
+        hadsr -> pulse -> pan -> output
+         */
+        synth.add(adsr)
+        synth.add(pulse)
+        synth.add(pan)
+        adsr.output.connect(pulse.amplitude)
+        pulse.output.connect(pan.input)
+        pan.output.connect(0, audioOut, 0)
+        pan.output.connect(1, audioOut, 1)
+
+        adsr.attack.set(0.0)
+        adsr.decay.set(1.0)
     }
-
-    /*override fun draw(drawer: Drawer) {
-        drawer.fill = ColorRGBa.RED
-        drawer.stroke = ColorRGBa.BLACK
-        drawer.strokeWeight = 1.0
-
-        if (body != null) {
-            drawer.circle(body!!.position.pixels(), pixels(cs.radius))
-        } else {
-            drawer.circle(bd.position.pixels(), pixels(cs.radius))
-        }
-    }*/
 
     override fun circle(): Circle {
         if (body != null) {
@@ -81,5 +94,24 @@ class Bouncer(center: Vector2, radius: Float, world: World) : Physical(world), C
 
         body = world.createBody(bd)
         body!!.createFixture(fd)
+
+        pulse.frequency.set(220.0 + cs.radius*100)
+        pulse.amplitude.set(0.6)
+        val panAmount = (body!!.position.x / box2d(WINDOW_WIDTH.toDouble())).toDouble()
+        pan.pan.set((panAmount - 0.5)*2)
+
+        playNote()
+    }
+
+    private fun playNote() {
+        adsr.input.set(1.0)
+        adsr.input.set(0.0,synth.createTimeStamp().makeRelative(0.5))
+    }
+
+    /**
+     * Invoke when a bounce has occurred, causes it to play its sound
+     */
+    fun bounce() {
+        playNote()
     }
 }

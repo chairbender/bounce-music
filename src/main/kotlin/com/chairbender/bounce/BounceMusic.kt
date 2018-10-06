@@ -4,12 +4,16 @@ import com.chairbender.bounce.model.Bouncer
 import com.jsyn.JSyn
 import com.jsyn.unitgen.LineOut
 import com.jsyn.unitgen.SineOscillator
+import org.jbox2d.callbacks.ContactImpulse
+import org.jbox2d.callbacks.ContactListener
+import org.jbox2d.collision.Manifold
 import org.jbox2d.collision.shapes.EdgeShape
 import org.jbox2d.common.Vec2
 import org.jbox2d.dynamics.BodyDef
 import org.jbox2d.dynamics.BodyType
 import org.jbox2d.dynamics.FixtureDef
 import org.jbox2d.dynamics.World
+import org.jbox2d.dynamics.contacts.Contact
 import org.openrndr.Program
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
@@ -26,15 +30,25 @@ class BounceMusic: Program() {
 
 
     override fun setup() {
+        val synth = JSyn.createSynthesizer()
+        val lineOut = LineOut()
+
+        synth.start()
+        synth.add(lineOut)
+        lineOut.start()
+
+
         mouse.buttonDown.listen {
             if (!drawingBouncer) {
-                nextBouncer = Bouncer(mouse.position, 0.0f, world)
+                nextBouncer = Bouncer(mouse.position, 0.0f, lineOut.input, synth, world)
                 drawingBouncer = true
             }
         }
 
         mouse.dragged.listen {
-            nextBouncer!!.expandTo(mouse.position)
+            if (drawingBouncer) {
+                nextBouncer!!.expandTo(mouse.position)
+            }
         }
 
         mouse.buttonUp.listen {
@@ -53,35 +67,31 @@ class BounceMusic: Program() {
         //add the walls of the world
         createWalls()
 
-        //test()
-    }
+        //Handle the contacts
+        world.setContactListener(object : ContactListener {
+            override fun endContact(contact: Contact?) {
 
-    private fun test() {
+            }
 
-        // Create a context for the synthesizer.
-        val synth = JSyn.createSynthesizer()
-        val osc = SineOscillator()
-        val lineOut = LineOut()
+            override fun preSolve(contact: Contact?, oldManifold: Manifold?) {
 
-        // Start synthesizer using default stereo output at 44100 Hz.
-        synth.start()
+            }
 
-        // Add a tone generator.
-        synth.add(osc)
-        // Add a stereo audio output unit.
-        synth.add(lineOut)
+            override fun postSolve(contact: Contact?, impulse: ContactImpulse?) {
+            }
 
-        // Connect the oscillator to both channels of the output.
-        osc.output.connect(0, lineOut.input, 0)
-        osc.output.connect(0, lineOut.input, 1)
+            override fun beginContact(contact: Contact?) {
+                if (contact!!.fixtureA.userData != null) {
+                    val bouncerA: Bouncer = contact.fixtureA.userData as Bouncer
+                    bouncerA.bounce()
+                }
 
-        // Set the frequency and amplitude for the sine wave.
-        osc.frequency.set(345.0)
-        osc.amplitude.set(0.6)
-
-        // We only need to start the LineOut. It will pull data from the
-        // oscillator.
-        lineOut.start()
+                if (contact!!.fixtureB.userData != null) {
+                    val bouncerB: Bouncer = contact.fixtureB.userData as Bouncer
+                    bouncerB.bounce()
+                }
+            }
+        })
     }
 
     private fun createWalls() {
@@ -89,9 +99,6 @@ class BounceMusic: Program() {
         createWall(0f, 0f, 0f, box2d(height.toDouble()))
         createWall(box2d(width.toDouble()), 0f, box2d(width.toDouble()), box2d(height.toDouble()))
         createWall(0f, box2d(height.toDouble()), box2d(width.toDouble()), box2d(height.toDouble()))
-
-
-
     }
 
     private fun createWall(x1: Float, y1: Float, x2: Float, y2: Float) {
@@ -111,6 +118,7 @@ class BounceMusic: Program() {
 
     override fun draw() {
         world.step(1.0f / 60.0f, 6, 2)
+
         drawer.fill = ColorRGBa.RED
         drawer.stroke = ColorRGBa.BLACK
         drawer.strokeWeight = 1.0
