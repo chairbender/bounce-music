@@ -52,6 +52,15 @@ class Note(letter: Char, semiAlterations: Int, val octave: Int): TonalPitchClass
         return Math.pow(2.0, (semitones() - 69) / 12.0) * 440
     }
 
+    fun asTonalPitchClass(): TonalPitchClass {
+        return TonalPitchClass(letter, semiAlterations)
+    }
+
+    override fun toString(): String {
+        return super.toString() + octave
+    }
+
+
     constructor(tpc: TonalPitchClass, octave: Int) : this(tpc.letter, tpc.semiAlterations, octave)
     constructor(note: String) : this(TonalPitchClass(note), parseOctave(note))
 
