@@ -26,6 +26,53 @@ open class TonalPitchClass(val letter: Char, val semiAlterations: Int) {
     }
 
     /**
+     * @return tonal pitch class with all alterations removed
+     */
+    fun natural(): TonalPitchClass {
+        return TonalPitchClass(letter, 0)
+    }
+
+    /**
+     * @return Returns the 'natural' pitch class that is one higher
+     * than the given pitch class. 'Natural' here means without an accidental.
+     * So, if Bb is given, the next natural will be C. If B# is given, the next natural will
+     * be C
+     */
+    fun nextNatural(): TonalPitchClass {
+        return TonalPitchClass(if (letter == 'G') 'A' else letter + 1, 0)
+    }
+
+    /**
+     * opposite of nextNatural
+     */
+    fun previousNatural(): TonalPitchClass {
+        return TonalPitchClass(if (letter == 'A') 'G' else letter - 1, 0)
+    }
+
+    /**
+     * Checks if TPCs are equal. Enharmonic equivalence (same frequency but different way of getting there) doesn't
+     * count! Ab and G# are different despite being the same pitch.
+     */
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as TonalPitchClass
+
+        if (letter != other.letter) return false
+        if (semiAlterations != other.semiAlterations) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = letter.hashCode()
+        result = 31 * result + semiAlterations
+        return result
+    }
+
+
+    /**
      * @param tpc - tpc like (natural note)(alterations), i.e. Ab, G#, etc...octave numbers are permitted
      *  at the end but will be ignored
      */
