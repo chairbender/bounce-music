@@ -91,6 +91,50 @@ class Interval(val quality: List<Quality>, val number: Int) {
         return Note(curTPC, bottom.octave + octaves)
     }
 
+    /**
+     * @param top note from which interval should be applied
+     * @return the note which is this interval below top
+     */
+    fun downFrom(top: Note): Note {
+        //reduce the distance so they are within an octave (we will add back in the octave later)
+        val octaves = (number - 1) / 7
+        val octaveInterval = Interval(quality, (number % 8) + octaves)
+
+        // to do the opposite of upFrom, simply
+        // go in the circle of fifths until we encouter our interval, then traverse in the opposite direction
+        //figure out which direction to walk
+        var curInterval = Interval("P1")
+        var steps = 0
+        if (this == PERFECT_4TH || this.quality[0] == Quality.MINOR ||
+            this.quality[0] == Quality.DIMINISHED) {
+            //walk down
+            while (curInterval != octaveInterval) {
+                curInterval = prevCircleOfFifthsInterval(curInterval)
+                steps--
+            }
+
+        } else {
+            //walk up
+            while (curInterval != octaveInterval) {
+                curInterval = nextCircleOfFifthsInterval(curInterval)
+                steps++
+            }
+        }
+
+        //now we know the number of steps, so go that many steps in the opposite direction
+        // on the TPC circle starting on
+        var curTPC = top.asTonalPitchClass()
+        for (i in 1..Math.abs(steps)) {
+            if (steps < 0) {
+                curTPC = nextCircleOfFifthsTPC(curTPC)
+            } else {
+                curTPC = prevCircleOfFifthsTPC(curTPC)
+            }
+        }
+
+        return Note(curTPC, top.octave - octaves)
+    }
+
     private fun nextCircleOfFifthsInterval(curInterval: Interval): Interval {
         val nextNumber = NEXT_INTERVAL_MAP[curInterval.number]
         val nextQuality = getNextQuality(curInterval)
@@ -233,6 +277,8 @@ class Interval(val quality: List<Quality>, val number: Int) {
     override fun toString(): String {
         return quality.map { it.abbreviation }.joinToString("") + number
     }
+
+
 
 
     /**
