@@ -33,20 +33,32 @@ open class TonalPitchClass(val letter: Char, val semiAlterations: Int) {
     }
 
     /**
-     * @return Returns the 'natural' pitch class that is one higher
-     * than the given pitch class. 'Natural' here means without an accidental.
-     * So, if Bb is given, the next natural will be C. If B# is given, the next natural will
-     * be C
+     * @return TPC with a sharp added (or flat removed if a flat exists)
      */
-    fun nextNatural(): TonalPitchClass {
-        return TonalPitchClass(if (letter == 'G') 'A' else letter + 1, 0)
+    fun sharpen(): TonalPitchClass {
+        return TonalPitchClass(letter, semiAlterations + 1)
     }
 
     /**
-     * opposite of nextNatural
+     * @return TPC with a flat added (or sharp removed if a sharp exists)
      */
-    fun previousNatural(): TonalPitchClass {
-        return TonalPitchClass(if (letter == 'A') 'G' else letter - 1, 0)
+    fun flatten(): TonalPitchClass {
+        return TonalPitchClass(letter, semiAlterations - 1)
+    }
+
+    /**
+     * @return Returns a TPC with the next letter (wrapping around from G to A), preserving this
+     * TPC's accidentals
+     */
+    fun nextLetter(): TonalPitchClass {
+        return TonalPitchClass(if (letter == 'G') 'A' else letter + 1, semiAlterations)
+    }
+
+    /**
+     * opposite of nextLetter
+     */
+    fun previousLetter(): TonalPitchClass {
+        return TonalPitchClass(if (letter == 'A') 'G' else letter - 1, semiAlterations)
     }
 
     /**
@@ -71,6 +83,14 @@ open class TonalPitchClass(val letter: Char, val semiAlterations: Int) {
         return result
     }
 
+    override fun toString(): String {
+        val accidentals = when {
+            semiAlterations == 0 -> ""
+            semiAlterations < 0 -> "b".repeat(semiAlterations*-1)
+            else -> "#".repeat(semiAlterations)
+        }
+        return letter + accidentals
+    }
 
     /**
      * @param tpc - tpc like (natural note)(alterations), i.e. Ab, G#, etc...octave numbers are permitted
