@@ -23,10 +23,20 @@ class DiatonicCollection(tonic: TonalPitchClass) {
 
 
     private fun generatePitches(tonic: TonalPitchClass): List<TonalPitchClass> {
+        val result = mutableListOf<TonalPitchClass>()
 
-        if (tonic.semiAlterations > 0 || tonic.equals(F_NATURAL)) {
-            //flats, determine how many flats appear in the key signature
+        var currentNote = tonic
+        result.add(currentNote)
+        for (i in 1..6) {
+            currentNote = keySignature.applyTo(currentNote.nextNatural())
+            result.add(currentNote)
         }
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
+        return result
     }
+
+    /**
+     * @param tonic string tonal pitch class to use as the tonic
+     */
+    constructor(tonic: String) : this(TonalPitchClass(tonic))
 }

@@ -22,5 +22,10 @@ class KeySignatureTest {
         val aSharp = KeySignature("A#")
         assertEquals(TonalPitchClass("F#"), aSharp.accidentals[0])
         assertEquals(TonalPitchClass("D"), aSharp.accidentals[3])
+
+        //TODO: Fix
+        val fFlat = KeySignature("Fb")
+        assertEquals(TonalPitchClass("Bb"), fFlat.accidentals[0])
+        assertEquals(TonalPitchClass("F"), fFlat.accidentals[6])
     }
 }

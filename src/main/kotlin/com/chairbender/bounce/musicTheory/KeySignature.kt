@@ -38,7 +38,10 @@ class KeySignature(majorRoot: TonalPitchClass) {
      * accidental. For example, the key of G's first and only
      * sharp would be just F. The key of G#'s first accidental would be F#.
      */
+    private val hasFlats = majorRoot == F_NATURAL || majorRoot.semiAlterations < 0
     val accidentals: List<TonalPitchClass> = generateAccidentals(majorRoot)
+    private val naturalSemitoneMap: Map<TonalPitchClass,Int> =
+        accidentals.map { it.natural() to it.semiAlterations }.toMap()
 
     private fun generateAccidentals(root: TonalPitchClass): List<TonalPitchClass> {
         val result = mutableListOf<TonalPitchClass>()
@@ -48,22 +51,18 @@ class KeySignature(majorRoot: TonalPitchClass) {
         }
 
         //determine which circle to use
-        val circle = if (root == F_NATURAL || root.semiAlterations < 0) {
-            CIRCLE_OF_FLATS
-        } else {
-            CIRCLE_OF_SHARPS
-        }
+        val circle = if (hasFlats) CIRCLE_OF_FLATS else CIRCLE_OF_SHARPS
 
         //keep counting in the circle of flats until we reach our destination major key name
         var curTPC = circle[0]
         result.add(curTPC)
         var circleIndex = 0
 
-        while (!hasArrived(root, result, circleIndex, circle)) {
+        while (!hasArrived(root, result, circleIndex)) {
             circleIndex++
             if (circleIndex > 6) {
                 //we've looped, start increasing the number of accidentals in existing TPCs
-                curTPC = if (circle === CIRCLE_OF_FLATS) {
+                curTPC = if (hasFlats) {
                     result[circleIndex % 7].flatten()
                 } else {
                     result[circleIndex % 7].sharpen()
@@ -78,8 +77,8 @@ class KeySignature(majorRoot: TonalPitchClass) {
         return result
     }
 
-    private fun hasArrived(root: TonalPitchClass, result: List<TonalPitchClass>, index: Int, circle: List<TonalPitchClass>): Boolean {
-        if (circle === CIRCLE_OF_FLATS) {
+    private fun hasArrived(root: TonalPitchClass, result: List<TonalPitchClass>, index: Int): Boolean {
+        if (hasFlats) {
             //check for F, the special case
             if (root == F_NATURAL) {
                 return result.size == 1
@@ -88,7 +87,8 @@ class KeySignature(majorRoot: TonalPitchClass) {
             return if (result.size < 2) {
                 false
             } else {
-                val prevAccidental = result[result.size - 2].flatten()
+                //TODO: FIx
+                val prevAccidental = result[(index - 1) % 7].flatten()
                 prevAccidental == root
             }
         } else {
@@ -106,6 +106,21 @@ class KeySignature(majorRoot: TonalPitchClass) {
 
             return oneUp == root
         }
+    }
+
+    /**
+     * @param natural a TPC representing a natural (with no accidentals)
+     *
+     * @return a TPC created by applying the relevant accidentals in the key signature to this natural
+     */
+    fun applyTo(natural: TonalPitchClass): TonalPitchClass {
+        if (!naturalSemitoneMap.contains(natural)) {
+            return natural
+        } else {
+            val mod = if (hasFlats) -1 else 1
+            return natural.applyAccidentals(naturalSemitoneMap[natural]!! + mod)
+        }
+
     }
 
     constructor(rootName: String) : this(TonalPitchClass(rootName))

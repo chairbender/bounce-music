@@ -36,14 +36,14 @@ open class TonalPitchClass(val letter: Char, val semiAlterations: Int) {
      * @return TPC with a sharp added (or flat removed if a flat exists)
      */
     fun sharpen(): TonalPitchClass {
-        return TonalPitchClass(letter, semiAlterations + 1)
+        return applyAccidentals(1)
     }
 
     /**
      * @return TPC with a flat added (or sharp removed if a sharp exists)
      */
     fun flatten(): TonalPitchClass {
-        return TonalPitchClass(letter, semiAlterations - 1)
+        return applyAccidentals(-1)
     }
 
     /**
@@ -52,6 +52,13 @@ open class TonalPitchClass(val letter: Char, val semiAlterations: Int) {
      */
     fun nextLetter(): TonalPitchClass {
         return TonalPitchClass(if (letter == 'G') 'A' else letter + 1, semiAlterations)
+    }
+
+    /**
+     * Like nextLetter, but drops any accidentals
+     */
+    fun nextNatural(): TonalPitchClass {
+        return TonalPitchClass(if (letter == 'G') 'A' else letter + 1, 0)
     }
 
     /**
@@ -91,6 +98,18 @@ open class TonalPitchClass(val letter: Char, val semiAlterations: Int) {
         }
         return letter + accidentals
     }
+
+    /**
+     * @param semitoneAlterations accidentals to apply to this TPC in addition to what
+     * is already present. For example,
+     *  if you want to add 1 sharp / remove one flat (if a flat is present), applyAccidentals(1).
+     *
+     *  @return TPC with the accidentals modified
+     */
+    fun applyAccidentals(semitoneAlterations: Int): TonalPitchClass {
+        return TonalPitchClass(letter, semiAlterations + semitoneAlterations)
+    }
+
 
     /**
      * @param tpc - tpc like (natural note)(alterations), i.e. Ab, G#, etc...octave numbers are permitted
