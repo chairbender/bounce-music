@@ -30,4 +30,18 @@ class IntervalTest {
         assertEquals(Note("C#4"), Interval("d8").downFrom(Note("C5")))
         assertEquals(Note("C4"), Interval("A8").downFrom(Note("C#5")))
     }
+
+    @Test
+    fun between() {
+        assertEquals(Interval("M2"), Interval.between(Note("A4"), Note("B4")))
+        assertEquals(Interval("m3"), Interval.between(Note("A4"), Note("C4")))
+        assertEquals(Interval("P1"), Interval.between(Note("A3"), Note("A3")))
+        assertEquals(Interval("P8"), Interval.between(Note("A3"), Note("A4")))
+        assertEquals(Interval("M10"), Interval.between(Note("A3"), Note("C#4")))
+        assertEquals(Interval("dd2"), Interval.between(Note("E#4"), Note("Fb4")))
+        assertEquals(Interval("M2"), Interval.between(Note("G3"), Note("A4")))
+        assertEquals(Interval("M2"), Interval.between(Note("A4"), Note("G3")))
+        assertEquals(Interval("d8"), Interval.between(Note("C#4"), Note("C5")))
+        assertEquals(Interval("A8"), Interval.between(Note("C4"), Note("C#5")))
+    }
 }
