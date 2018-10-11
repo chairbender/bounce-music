@@ -1,33 +1,29 @@
 package com.chairbender.bounce.model
 
 import com.chairbender.bounce.*
-import com.jsyn.Synthesizer
-import com.jsyn.ports.UnitInputPort
-import com.jsyn.unitgen.*
-import com.softsynth.shared.time.TimeStamp
 import org.jbox2d.collision.shapes.CircleShape
 import org.jbox2d.dynamics.*
-import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.Drawer
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Circle
 
 const val BASE_VELOCITY = 5.0
+//min and max radius in box2d units
+const val MAX_RADIUS = 1.0f
+const val MIN_RADIUS = 0.1f
 
 /**
  * The thing that bounces around, a circle. Initially it is drawn and is not part of the physics simulation.
  * Once it is finished, it is added to the physics simulation and launched.
  */
-class Bouncer(center: Vector2, radius: Float, private val audioOut: UnitInputPort,
-              private val synth: Synthesizer, world: World) : Physical(world), Circular {
+class Bouncer(center: Vector2, radius: Float, private val audioWorld: AudioWorld,
+              world: World) : Physical(world), Circular {
     private val bd = BodyDef()
     private val cs = CircleShape()
     private val fd = FixtureDef()
     private var body: Body? = null
+    private val audioBody = audioWorld.createBody()
 
-    private val pan = Pan()
-    private val adsr = EnvelopeAttackDecay()
-    private val pulse = PulseOscillator()
+
 
     init {
         bd.position.set(center.box2d())
@@ -41,20 +37,6 @@ class Bouncer(center: Vector2, radius: Float, private val audioOut: UnitInputPor
         fd.friction = .0f
         fd.userData = this
 
-        //hook up the ugen
-        /*
-        hadsr -> pulse -> pan -> output
-         */
-        synth.add(adsr)
-        synth.add(pulse)
-        synth.add(pan)
-        adsr.output.connect(pulse.amplitude)
-        pulse.output.connect(pan.input)
-        pan.output.connect(0, audioOut, 0)
-        pan.output.connect(1, audioOut, 1)
-
-        adsr.attack.set(0.0)
-        adsr.decay.set(1.0)
     }
 
     override fun circle(): Circle {
@@ -67,15 +49,16 @@ class Bouncer(center: Vector2, radius: Float, private val audioOut: UnitInputPor
     }
 
     /**
-     * Expand this bouncer's radius so that it touches touch
+     * Expand or shrink this bouncer's radius so that it touches touch (not to
+     * exceed MAX_RADIUS or to go below MIN_RADIUS
      *
      * @param touch position to expand to
      */
-    fun expandTo(touch: Vector2) {
+    fun expandOrShrinkTo(touch: Vector2) {
         if (body != null) {
             throw Exception("body is already launched!")
         }
-        cs.radius = (bd.position.sub(touch.box2d())).length()
+        cs.radius = Math.min(MAX_RADIUS, Math.max(MIN_RADIUS, (bd.position.sub(touch.box2d())).length()))
     }
 
     /**
@@ -95,17 +78,11 @@ class Bouncer(center: Vector2, radius: Float, private val audioOut: UnitInputPor
         body = world.createBody(bd)
         body!!.createFixture(fd)
 
-        pulse.frequency.set(220.0 + cs.radius*100)
-        pulse.amplitude.set(0.6)
-        val panAmount = (body!!.position.x / box2d(WINDOW_WIDTH.toDouble())).toDouble()
-        pan.pan.set((panAmount - 0.5)*2)
-
         playNote()
     }
 
     private fun playNote() {
-        adsr.input.set(1.0)
-        adsr.input.set(0.0,synth.createTimeStamp().makeRelative(0.5))
+        audioBody.playNote(cs.radius, body!!.position.x)
     }
 
     /**

@@ -29,10 +29,9 @@ class Key(root: TonalPitchClass, val mode: Mode) {
     /**
      * @param startOctave octave to start the scale on
      * @param numOctaves number of octaves to generate
-     * @param harmonicMinor if this is a minor key, set this to true to get the harmonic minor. Otherwise, the
-     *  melodic minor will be used.
+     * @param scaleMode if this is a minor key, type of minor scale to use
      */
-    fun scale(startOctave: Int, numOctaves: Int = 1, harmonicMinor: Boolean = false): List<Note> {
+    fun scale(startOctave: Int, numOctaves: Int = 1, scaleMode: ScaleMode = ScaleMode.NATURAL): List<Note> {
         val result = mutableListOf<Note>()
         val switchLetter = if (pitches[0].letter == 'A') 7 else 'G' - pitches[0].letter
         for (i in startOctave..(numOctaves + startOctave - 1)) {
@@ -40,8 +39,11 @@ class Key(root: TonalPitchClass, val mode: Mode) {
                 pitches
                     .asSequence()
                     .mapIndexed { index, tonalPitchClass ->
-                        if (harmonicMinor && (index == 5 || index == 6)) tonalPitchClass.sharpen()
-                        else tonalPitchClass
+                        when {
+                            scaleMode == ScaleMode.HARMONIC && index == 6 -> tonalPitchClass.sharpen()
+                            scaleMode == ScaleMode.MELODIC_ASCENDING && (index == 5 || index == 6) -> tonalPitchClass.sharpen()
+                            else -> tonalPitchClass
+                        }
                     }
                     .mapIndexed { index, tonalPitchClass ->
                         if (index > switchLetter) Note(tonalPitchClass,i + 1)

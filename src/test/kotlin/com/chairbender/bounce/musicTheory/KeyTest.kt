@@ -43,7 +43,7 @@ class KeyTest {
         )
         assertEquals(cMajor, Key("C", Mode.MAJOR).scale(4,2))
 
-        val aHarmonicMinor = listOf(
+        val aNaturalMinor = listOf(
                 Note("A4"),
                 Note("B4"),
                 Note("C4"),
@@ -52,7 +52,7 @@ class KeyTest {
                 Note("F4"),
                 Note("G4")
             )
-        assertEquals(aHarmonicMinor, Key("A", Mode.MINOR).scale(4))
+        assertEquals(aNaturalMinor, Key("A", Mode.MINOR).scale(4))
 
         val aMelodicMinor = listOf(
             Note("A4"),
@@ -70,7 +70,7 @@ class KeyTest {
             Note("F#5"),
             Note("G#5")
         )
-        assertEquals(aMelodicMinor, Key("A", Mode.MINOR).scale(4, 2, true))
+        assertEquals(aMelodicMinor, Key("A", Mode.MINOR).scale(4, 2, ScaleMode.MELODIC_ASCENDING))
 
     }
 }

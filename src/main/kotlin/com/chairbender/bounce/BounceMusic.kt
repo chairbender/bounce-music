@@ -1,9 +1,8 @@
 package com.chairbender.bounce
 
+import com.chairbender.bounce.model.AudioWorld
 import com.chairbender.bounce.model.Bouncer
 import com.jsyn.JSyn
-import com.jsyn.unitgen.LineOut
-import com.jsyn.unitgen.SineOscillator
 import org.jbox2d.callbacks.ContactImpulse
 import org.jbox2d.callbacks.ContactListener
 import org.jbox2d.collision.Manifold
@@ -14,6 +13,7 @@ import org.jbox2d.dynamics.BodyType
 import org.jbox2d.dynamics.FixtureDef
 import org.jbox2d.dynamics.World
 import org.jbox2d.dynamics.contacts.Contact
+import org.openrndr.MouseButton
 import org.openrndr.Program
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
@@ -21,6 +21,8 @@ import org.openrndr.configuration
 
 class BounceMusic: Program() {
     val world = World(Vec2(0.0f, 0.0f))
+    val director = Director()
+    val audioWorld = AudioWorld(director)
     val bouncers = mutableListOf<Bouncer>()
     var nextBouncer: Bouncer? = null
     var drawingBouncer = false
@@ -30,32 +32,29 @@ class BounceMusic: Program() {
 
 
     override fun setup() {
-        val synth = JSyn.createSynthesizer()
-        val lineOut = LineOut()
-
-        synth.start()
-        synth.add(lineOut)
-        lineOut.start()
-
-
         mouse.buttonDown.listen {
-            if (!drawingBouncer) {
-                nextBouncer = Bouncer(mouse.position, 0.0f, lineOut.input, synth, world)
-                drawingBouncer = true
+            if (it.button == MouseButton.LEFT) {
+                if (!drawingBouncer) {
+                    nextBouncer = Bouncer(mouse.position, 0.0f, audioWorld, world)
+                    drawingBouncer = true
+                    nextBouncer!!.expandOrShrinkTo(mouse.position)
+                }
             }
         }
 
         mouse.dragged.listen {
             if (drawingBouncer) {
-                nextBouncer!!.expandTo(mouse.position)
+                nextBouncer!!.expandOrShrinkTo(mouse.position)
             }
         }
 
         mouse.buttonUp.listen {
-            if (drawingBouncer) {
-                drawingBouncer = false
-                nextBouncer!!.launch(mouse.position)
-                bouncers.add(nextBouncer!!)
+            if (it.button == MouseButton.LEFT) {
+                if (drawingBouncer) {
+                    drawingBouncer = false
+                    nextBouncer!!.launch(mouse.position)
+                    bouncers.add(nextBouncer!!)
+                }
             }
         }
 
@@ -132,10 +131,12 @@ class BounceMusic: Program() {
 }
 
 fun main(args: Array<String>) {
+    val program = BounceMusic()
     application(
         BounceMusic(),
             configuration {
                 width = WINDOW_WIDTH
                 height = WINDOW_HEIGHT
             })
+    program.audioWorld.synth.stop()
 }
