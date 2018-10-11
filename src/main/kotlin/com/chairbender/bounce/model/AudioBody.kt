@@ -7,9 +7,7 @@ import com.chairbender.bounce.musicTheory.Note
 import com.jsyn.Synthesizer
 import com.jsyn.ports.UnitInputPort
 import com.jsyn.ports.UnitOutputPort
-import com.jsyn.unitgen.EnvelopeAttackDecay
-import com.jsyn.unitgen.Pan
-import com.jsyn.unitgen.PulseOscillator
+import com.jsyn.unitgen.*
 import org.jbox2d.collision.shapes.CircleShape
 import kotlin.math.roundToInt
 
@@ -21,7 +19,7 @@ class AudioBody(private val audioOut: UnitInputPort, private val synth: Synthesi
                 private val director: Director) {
     private val pan = Pan()
     private val adsr = EnvelopeAttackDecay()
-    private val pulse = PulseOscillator()
+    private val pulse = PulseOscillatorBL()
 
     init {
         //hook up the ugen
@@ -33,6 +31,7 @@ class AudioBody(private val audioOut: UnitInputPort, private val synth: Synthesi
         synth.add(pan)
         adsr.output.connect(pulse.amplitude)
         pulse.output.connect(pan.input)
+        pulse.width.set(0.5)
         pan.output.connect(0, audioOut, 0)
         pan.output.connect(1, audioOut, 1)
 
@@ -59,6 +58,14 @@ class AudioBody(private val audioOut: UnitInputPort, private val synth: Synthesi
         pan.pan.set((panAmount - 0.5)*2)
         adsr.input.set(1.0)
         adsr.input.set(0.0,synth.createTimeStamp().makeRelative(0.01))
+    }
+
+    /**
+     *
+     * @param value value to set volume to - 0 indicates complete silence and 1 indicates the max volume
+     */
+    fun setVolume(value: Double) {
+        adsr.amplitude.set(value)
     }
 
 }

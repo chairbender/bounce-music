@@ -28,6 +28,8 @@ class AudioWorld(private val director: Director) {
         val body = AudioBody(lineOut.input, synth, this, director)
         bodies.add(body)
 
+        bodies.forEach { it.setVolume(1.0 / bodies.size) }
+
         return body
     }
 
