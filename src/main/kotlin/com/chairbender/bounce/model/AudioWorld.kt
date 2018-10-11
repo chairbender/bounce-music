@@ -57,7 +57,7 @@ class AudioWorld(private val director: Director) {
         filterOsc.amplitude.set(100.0)
         adder.output.connect(droneFilter.frequency)
         drone.output.connect(droneFilter.input)
-        drone.frequency.set(director.scale[7].hz())
+        drone.frequency.set(director.scale[0].hz())
         drone.amplitude.set(0.25)
 
         droneFilter.output.connect(pan.input)

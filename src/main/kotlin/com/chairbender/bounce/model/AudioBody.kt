@@ -11,6 +11,9 @@ import com.jsyn.unitgen.*
 import org.jbox2d.collision.shapes.CircleShape
 import kotlin.math.roundToInt
 
+private val SHORTEST_DECAY = 1.0
+private val LONGEST_DECAY = 5.0
+
 /**
  * An audio-producing body within an audio world, through which bouncers can talk to AudioWorld to
  * create audio
@@ -56,6 +59,10 @@ class AudioBody(private val audioOut: UnitInputPort, private val synth: Synthesi
         pulse.frequency.set(chosenNote.hz())
         val panAmount = (xPos / box2d(WINDOW_WIDTH.toDouble())).toDouble()
         pan.pan.set((panAmount - 0.5)*2)
+
+        //adjust decay based on how low the note is
+        adsr.decay.set((1 - radiusRatio) * (LONGEST_DECAY - SHORTEST_DECAY) + SHORTEST_DECAY)
+
         adsr.input.set(1.0)
         adsr.input.set(0.0,synth.createTimeStamp().makeRelative(0.01))
     }

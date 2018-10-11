@@ -17,7 +17,7 @@ class Director {
 
     //by adjusting these you can adjust the Director's overall behavior
     private val scaleOctaves = 4
-    private val scaleStartOctave = 1
+    private val scaleStartOctave = 2
 
     /**
      * Current key
