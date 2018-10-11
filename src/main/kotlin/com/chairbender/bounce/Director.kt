@@ -41,7 +41,7 @@ class Director {
         //randomly pick major or minor
         val mode: Mode = Mode.values().random(rand)!!
 
-        return Key(sign + letter, mode)
+        return Key(letter.toString() + sign, mode)
     }
 }
 

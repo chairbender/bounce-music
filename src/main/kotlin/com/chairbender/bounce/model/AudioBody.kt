@@ -36,7 +36,7 @@ class AudioBody(private val audioOut: UnitInputPort, private val synth: Synthesi
         pan.output.connect(1, audioOut, 1)
 
         adsr.attack.set(0.0)
-        adsr.decay.set(1.0)
+        adsr.decay.set(2.0)
     }
 
     /**

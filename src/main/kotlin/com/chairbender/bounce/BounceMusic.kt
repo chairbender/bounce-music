@@ -133,7 +133,7 @@ class BounceMusic: Program() {
 fun main(args: Array<String>) {
     val program = BounceMusic()
     application(
-        BounceMusic(),
+        program,
             configuration {
                 width = WINDOW_WIDTH
                 height = WINDOW_HEIGHT
