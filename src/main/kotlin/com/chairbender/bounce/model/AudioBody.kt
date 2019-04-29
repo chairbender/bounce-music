@@ -3,12 +3,13 @@ package com.chairbender.bounce.model
 import com.chairbender.bounce.Director
 import com.chairbender.bounce.WINDOW_WIDTH
 import com.chairbender.bounce.box2d
-import com.chairbender.bounce.musicTheory.Note
 import com.jsyn.Synthesizer
 import com.jsyn.ports.UnitInputPort
 import com.jsyn.ports.UnitOutputPort
 import com.jsyn.unitgen.*
-import org.jbox2d.collision.shapes.CircleShape
+import net.beadsproject.beads.core.AudioContext
+import net.beadsproject.beads.core.UGen
+import net.beadsproject.beads.ugens.Panner
 import kotlin.math.roundToInt
 
 private val SHORTEST_DECAY = 1.0
@@ -18,9 +19,9 @@ private val LONGEST_DECAY = 5.0
  * An audio-producing body within an audio world, through which bouncers can talk to AudioWorld to
  * create audio
  */
-class AudioBody(private val audioOut: UnitInputPort, private val synth: Synthesizer, private val world: AudioWorld,
+class AudioBody(private val audioOut: UGen, private val audioContext: AudioContext, private val world: AudioWorld,
                 private val director: Director) {
-    private val pan = Pan()
+    private val pan = Panner(audioContext)
     private val adsr = EnvelopeAttackDecay()
     private val pulse = PulseOscillatorBL()
 
@@ -29,9 +30,9 @@ class AudioBody(private val audioOut: UnitInputPort, private val synth: Synthesi
         /*
         hadsr -> pulse -> pan -> audioOut
          */
-        synth.add(adsr)
-        synth.add(pulse)
-        synth.add(pan)
+        audioContext.add(adsr)
+        audioContext.add(pulse)
+        audioContext.add(pan)
         adsr.output.connect(pulse.amplitude)
         pulse.output.connect(pan.input)
         pulse.width.set(0.5)
@@ -64,7 +65,7 @@ class AudioBody(private val audioOut: UnitInputPort, private val synth: Synthesi
         adsr.decay.set((1 - radiusRatio) * (LONGEST_DECAY - SHORTEST_DECAY) + SHORTEST_DECAY)
 
         adsr.input.set(1.0)
-        adsr.input.set(0.0,synth.createTimeStamp().makeRelative(0.01))
+        adsr.input.set(0.0,audioContext.createTimeStamp().makeRelative(0.01))
     }
 
     /**

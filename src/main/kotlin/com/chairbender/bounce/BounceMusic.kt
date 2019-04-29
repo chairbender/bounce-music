@@ -131,6 +131,7 @@ class BounceMusic: Program() {
 }
 
 fun main(args: Array<String>) {
+    //TODO: Switch to beads, has more useful ugens than jsyn.
     val program = BounceMusic()
     application(
         program,
@@ -138,5 +139,5 @@ fun main(args: Array<String>) {
                 width = WINDOW_WIDTH
                 height = WINDOW_HEIGHT
             })
-    program.audioWorld.synth.stop()
+    program.audioWorld.audioContext.stop()
 }

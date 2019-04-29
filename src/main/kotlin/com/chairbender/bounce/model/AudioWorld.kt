@@ -1,9 +1,11 @@
 package com.chairbender.bounce.model
 
 import com.chairbender.bounce.Director
-import com.chairbender.bounce.musicTheory.Note
-import com.jsyn.JSyn
-import com.jsyn.unitgen.*
+import net.beadsproject.beads.core.AudioContext
+import net.beadsproject.beads.data.Buffer
+import net.beadsproject.beads.ugens.Add
+import net.beadsproject.beads.ugens.LPRezFilter
+import net.beadsproject.beads.ugens.WavePlayer
 
 /**
  * Handles audio
@@ -21,14 +23,13 @@ import com.jsyn.unitgen.*
  */
 class AudioWorld(private val director: Director) {
     val bodies = mutableListOf<AudioBody>()
-    val synth = JSyn.createSynthesizer()
-    val lineOut = LineOut()
-    val drone = PulseOscillatorBL()
+    val audioContext = AudioContext()
+    val drone = WavePlayer(audioContext, 440.0f, Buffer.SQUARE)
 
     fun createBody(): AudioBody {
         //TODO: Output to a compressor which tries to keep the volume
         //of the audiobodies up to a certain level so they don't get too quiet during sparse sections
-        val body = AudioBody(lineOut.input, synth, this, director)
+        val body = AudioBody(audioContext.audioInput, audioContext, this, director)
         bodies.add(body)
 
         bodies.forEach { it.setVolume(1.0 / bodies.size) }
@@ -37,35 +38,18 @@ class AudioWorld(private val director: Director) {
     }
 
     init {
-        synth.start()
-        synth.add(lineOut)
-        lineOut.start()
+        audioContext.start()
 
         //set up and start the drone
-        val filterOsc = SineOscillator()
-        val droneFilter = FilterLowPass()
-        val adder = Add()
-        synth.add(filterOsc)
-        synth.add(drone)
-        synth.add(droneFilter)
-        synth.add(adder)
-        val pan = Pan()
-        synth.add(pan)
-        adder.inputB.set(300.0)
-        filterOsc.output.connect(adder.inputA)
-        filterOsc.frequency.set(0.1)
-        filterOsc.amplitude.set(100.0)
-        adder.output.connect(droneFilter.frequency)
-        drone.output.connect(droneFilter.input)
-        drone.frequency.set(director.scale[0].hz())
-        drone.amplitude.set(0.25)
+        val filterOsc = WavePlayer(audioContext, 0.1f, Buffer.SINE)
+        val adder = Add(audioContext, 300, filterOsc)
+        val droneFilter = LPRezFilter(audioContext, adder, 0.2f)
 
-        droneFilter.output.connect(pan.input)
-        droneFilter.output.connect(0, lineOut.input, 1)
-
-        pan.pan.set(0.0)
-        pan.output.connect(0, lineOut.input, 0)
-        pan.output.connect(1, lineOut.input, 1)
+        droneFilter.addInput(drone)
+        drone.frequency = director.scale[0].hz().toFloat()
+        //TODO: Adjust drone volume
+        //TODO: Spatialize / reveb / pan ?
+        audioContext.audioInput.addInput(droneFilter)
     }
 
 }

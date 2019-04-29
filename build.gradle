@@ -27,6 +27,7 @@ repositories {
     maven {
         url="http://clojars.org/repo/"
     }
+    maven { url "https://jitpack.io" }
 }
 
 switch (org.gradle.internal.os.OperatingSystem.current()) {
@@ -53,7 +54,7 @@ dependencies {
     // https://mvnrepository.com/artifact/org.jbox2d/jbox2d-library
     compile group: 'org.jbox2d', name: 'jbox2d-library', version: '2.2.1.1'
     // https://mvnrepository.com/artifact/com.jsyn/jsyn
-    compile group: 'com.jsyn', name: 'jsyn', version: '20170815'
+    compile 'com.github.orsjb:beads:master-SNAPSHOT'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile "org.jetbrains.kotlin:kotlin-test"
